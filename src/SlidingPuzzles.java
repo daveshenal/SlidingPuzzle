@@ -41,85 +41,94 @@ public class SlidingPuzzles {
         visited.add(startNode);
 
         while (!queue.isEmpty()) {
-            IceMapNode currentNode = queue.poll(); // poll() instead of peek() to remove the node from the queue
-
+            IceMapNode currentNode = queue.peek();
             if (currentNode == finishNode) {
                 return reconstructPath(parentMap, finishNode);
             }
-
-            if (currentNode.topNeighbor != null && !currentNode.topNeighbor.isRock && !visited.contains(currentNode.topNeighbor)) {
-                IceMapNode turnNode = moveUp(currentNode, queue, visited, finishNode);
-                parentMap.put(turnNode, currentNode);
+            if(currentNode.direction != null) {
+                switch (currentNode.direction) {
+                    case UP -> moveUp(currentNode, queue, visited, parentMap);
+                    case DOWN -> moveDown(currentNode, queue, visited, parentMap);
+                    case LEFT -> moveLeft(currentNode, queue, visited, parentMap);
+                    case RIGHT -> moveRight(currentNode, queue, visited, parentMap);
+                }
             }
-            if (currentNode.rightNeighbor != null && !currentNode.rightNeighbor.isRock && !visited.contains(currentNode.rightNeighbor)) {
-                IceMapNode turnNode = moveRight(currentNode, queue, visited, finishNode);
-                parentMap.put(turnNode, currentNode);
-            }
-            if (currentNode.bottomNeighbor != null && !currentNode.bottomNeighbor.isRock && !visited.contains(currentNode.bottomNeighbor)) {
-                IceMapNode turnNode = moveDown(currentNode, queue, visited, finishNode);
-                parentMap.put(turnNode, currentNode);
-            }
-            if (currentNode.leftNeighbor != null && !currentNode.leftNeighbor.isRock && !visited.contains(currentNode.leftNeighbor)) {
-                IceMapNode turnNode = moveLeft(currentNode, queue, visited, finishNode);
-                parentMap.put(turnNode, currentNode);
-            }
+            else addNeighborsToQueue(currentNode, visited, queue, parentMap);
+            queue.remove();
         }
-
         return null; // No path found
     }
 
-    public static IceMapNode moveUp(IceMapNode currentNode, Queue<IceMapNode> queue, Set<IceMapNode> visited, IceMapNode finishNode) {
-        if (currentNode == finishNode)
-            return currentNode;
-        else if (currentNode.topNeighbor != null && !currentNode.topNeighbor.isRock && !visited.contains(currentNode.topNeighbor)) {
+    public static void addNeighborsToQueue(IceMapNode currentNode, Set<IceMapNode> visited, Queue<IceMapNode> queue, Map<IceMapNode,IceMapNode> parentMap) {
+        if(currentNode.topNeighbor != null && !currentNode.topNeighbor.isRock && !visited.contains(currentNode.topNeighbor)){
+            currentNode.topNeighbor.direction = IceMapNode.Direction.UP;
+            parentMap.put(currentNode.topNeighbor, currentNode);
             visited.add(currentNode.topNeighbor);
             queue.offer(currentNode.topNeighbor);
-            return currentNode.topNeighbor;
-        } else {
-            return currentNode;
         }
-    }
-
-    public static IceMapNode moveRight(IceMapNode currentNode, Queue<IceMapNode> queue, Set<IceMapNode> visited, IceMapNode finishNode) {
-        if (currentNode == finishNode)
-            return currentNode;
-        else if (currentNode.rightNeighbor != null && !currentNode.rightNeighbor.isRock && !visited.contains(currentNode.rightNeighbor)) {
+        if (currentNode.rightNeighbor != null && !currentNode.rightNeighbor.isRock && !visited.contains(currentNode.rightNeighbor)){
+            currentNode.rightNeighbor.direction = IceMapNode.Direction.RIGHT;
+            parentMap.put(currentNode.rightNeighbor, currentNode);
             visited.add(currentNode.rightNeighbor);
             queue.offer(currentNode.rightNeighbor);
-            return currentNode.rightNeighbor;
-        } else {
-            queue.offer(currentNode);
-            return currentNode;
         }
-    }
-
-
-    public static IceMapNode moveDown(IceMapNode currentNode, Queue<IceMapNode> queue, Set<IceMapNode> visited, IceMapNode finishNode) {
-        if (currentNode == finishNode)
-            return currentNode;
-        else if (currentNode.bottomNeighbor != null && !currentNode.bottomNeighbor.isRock && !visited.contains(currentNode.bottomNeighbor)) {
+        if (currentNode.bottomNeighbor != null && !currentNode.bottomNeighbor.isRock && !visited.contains(currentNode.bottomNeighbor)){
+            currentNode.bottomNeighbor.direction = IceMapNode.Direction.DOWN;
+            parentMap.put(currentNode.bottomNeighbor, currentNode);
             visited.add(currentNode.bottomNeighbor);
             queue.offer(currentNode.bottomNeighbor);
-            return currentNode.bottomNeighbor;
-        } else {
-            queue.offer(currentNode);
-            return currentNode;
         }
-    }
-
-    public static IceMapNode moveLeft(IceMapNode currentNode, Queue<IceMapNode> queue, Set<IceMapNode> visited, IceMapNode finishNode) {
-        if (currentNode == finishNode)
-            return currentNode;
-        else if (currentNode.leftNeighbor != null && !currentNode.leftNeighbor.isRock && !visited.contains(currentNode.leftNeighbor)) {
+        if (currentNode.leftNeighbor != null && !currentNode.leftNeighbor.isRock && !visited.contains(currentNode.leftNeighbor)){
+            currentNode.leftNeighbor.direction = IceMapNode.Direction.LEFT;
+            parentMap.put(currentNode.leftNeighbor, currentNode);
             visited.add(currentNode.leftNeighbor);
             queue.offer(currentNode.leftNeighbor);
-            return currentNode.leftNeighbor;
-        } else {
-            queue.offer(currentNode);
-            return currentNode;
         }
     }
 
+    public static void moveUp(IceMapNode currentNode, Queue<IceMapNode> queue, Set<IceMapNode> visited, Map<IceMapNode,IceMapNode> parentMap) {
+        if (currentNode.topNeighbor != null && !currentNode.topNeighbor.isRock ) {
+            currentNode.topNeighbor.direction = IceMapNode.Direction.UP;
+            parentMap.put(currentNode.topNeighbor, currentNode);
+            visited.add(currentNode.topNeighbor);
+            queue.offer(currentNode.topNeighbor);
+        } else {
+            addNeighborsToQueue(currentNode, visited, queue, parentMap);
+        }
+    }
+
+    public static void moveRight(IceMapNode currentNode, Queue<IceMapNode> queue, Set<IceMapNode> visited, Map<IceMapNode,IceMapNode> parentMap) {
+        if (currentNode.rightNeighbor != null && !currentNode.rightNeighbor.isRock ) {
+            currentNode.rightNeighbor.direction = IceMapNode.Direction.RIGHT;
+            parentMap.put(currentNode.rightNeighbor, currentNode);
+            visited.add(currentNode.rightNeighbor);
+            queue.offer(currentNode.rightNeighbor);
+        } else {
+            addNeighborsToQueue(currentNode, visited, queue, parentMap);
+        }
+    }
+
+    public static void moveDown(IceMapNode currentNode, Queue<IceMapNode> queue, Set<IceMapNode> visited, Map<IceMapNode,IceMapNode> parentMap) {
+        if (currentNode.bottomNeighbor != null && !currentNode.bottomNeighbor.isRock) {
+            currentNode.bottomNeighbor.direction = IceMapNode.Direction.DOWN;
+            parentMap.put(currentNode.bottomNeighbor, currentNode);
+            visited.add(currentNode.bottomNeighbor);
+            queue.offer(currentNode.bottomNeighbor);
+        } else {
+            addNeighborsToQueue(currentNode, visited, queue, parentMap);
+        }
+    }
+
+    public static void moveLeft(IceMapNode currentNode, Queue<IceMapNode> queue, Set<IceMapNode> visited, Map<IceMapNode,IceMapNode> parentMap) {
+        if (currentNode.leftNeighbor != null && !currentNode.leftNeighbor.isRock) {
+            currentNode.leftNeighbor.direction = IceMapNode.Direction.LEFT;
+            parentMap.put(currentNode.leftNeighbor, currentNode);
+            visited.add(currentNode.leftNeighbor);
+            queue.offer(currentNode.leftNeighbor);
+        } else {
+            addNeighborsToQueue(currentNode, visited, queue, parentMap);
+        }
+    }
 
     public static List<IceMapNode> reconstructPath(Map<IceMapNode, IceMapNode> parentMap, IceMapNode finishNode) {
         List<IceMapNode> path = new ArrayList<>();
