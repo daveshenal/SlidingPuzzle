@@ -1,125 +1,111 @@
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.PriorityQueue;
+import java.util.Set;
+import java.util.Stack;
 
 public class SlidingPuzzles {
     public static void main(String[] args) {
         try {
             writeMapToFile();
             char[][] map = parseMap("MapData.txt");
-            System.out.println("Map successfully parsed:");
+            System.out.println("Map successfully parsed\n");
             printMap(map);
             IceMap iceMap = new IceMap(map);
-            List<IceMapNode> path = findPath(iceMap.startNode, iceMap.endNode);
-            for (IceMapNode iceMapNode : path){
-                System.out.println((iceMapNode.column+1)+", "+(iceMapNode.row+1 ));
+            Stack<IceMapNode.Path> shortestPath = findPath(iceMap.getStartNode(), iceMap.getEndNode());
+
+            if(shortestPath != null){
+                printPathSteps(iceMap, shortestPath);
             }
+            else System.out.println("\nPath not found!");
 
         } catch (IOException e) {
             System.err.println("Error reading input file: " + e.getMessage());
         }
     }
 
+    private static void printPathSteps(IceMap iceMap, Stack<IceMapNode.Path> shortestPath) {
+        System.out.println("\nPath to 'S' to 'F'\n------------------");
+        System.out.println("Start Node: (" + (iceMap.getStartNode().getColumn() +1) + ", " +
+                (iceMap.getStartNode().getRow() +1) + ")");
+        while (!shortestPath.isEmpty()) {
+            IceMapNode.Path path = shortestPath.pop();
+            int startNodeColumn,startNodeRow,endNodeColumn,endNodeRow;
+            startNodeColumn = path.getStartNode().getColumn();
+            startNodeRow = path.getStartNode().getRow();
+            endNodeColumn = path.getEndNode().getColumn();
+            endNodeRow = path.getEndNode().getRow();
 
-    public static List<IceMapNode> findPath(IceMapNode startNode, IceMapNode finishNode) {
-        Queue<IceMapNode> queue = new LinkedList<>();
-        Map<IceMapNode, IceMapNode> parentMap = new HashMap<>();
+            if(startNodeColumn == endNodeColumn){ // vertical move
+                if(endNodeRow > startNodeRow) System.out.print("Move down to "); // down
+                else System.out.print("Move up to "); // up
+            }
+            else if (endNodeColumn > startNodeColumn) { // horizontal move
+                System.out.print("Move right to "); // right
+            } else System.out.print("Move left to "); // left
 
-        queue.offer(startNode);
+            System.out.println("(" + (path.getEndNode().getColumn() +1) + ", " + (path.getEndNode().getRow() +1) + ")");
+        }
+        System.out.println("Done :)");
+    }
+
+    public static Stack<IceMapNode.Path> findPath(IceMapNode startNode, IceMapNode finishNode) {
+        PriorityQueue<IceMapNode.Path> queue = new PriorityQueue<>();
+        Set<IceMapNode.Path>  pathMap = new HashSet<>();
+        Set<IceMapNode>  visited = new HashSet<>();
+
+        visited.add(startNode);
+        exploreAndEnqueuePaths(startNode, finishNode, visited, queue, pathMap);
 
         while (!queue.isEmpty()) {
-            IceMapNode currentNode = queue.peek();
-            if (currentNode == finishNode) {
-                return reconstructPath(parentMap, finishNode);
+            IceMapNode.Path currentPath = queue.peek();
+            if (currentPath.getEndNode() == finishNode) {
+                return reconstructPath(startNode, currentPath, pathMap);
             }
-            if(currentNode.direction != null) {
-                switch (currentNode.direction) {
-                    case UP -> moveUp(currentNode, queue, parentMap);
-                    case DOWN -> moveDown(currentNode, queue, parentMap);
-                    case LEFT -> moveLeft(currentNode, queue, parentMap);
-                    case RIGHT -> moveRight(currentNode, queue, parentMap);
-                }
-            }
-            else addNeighborsToQueue(currentNode, queue, parentMap);
+
+            exploreAndEnqueuePaths(currentPath.getEndNode(), finishNode, visited, queue, pathMap);
+
             queue.remove();
         }
         return null; // No path found
     }
 
-    public static void addNeighborsToQueue(IceMapNode currentNode, Queue<IceMapNode> queue, Map<IceMapNode,IceMapNode> parentMap) {
-        if(currentNode.topNeighbor != null && !currentNode.topNeighbor.isRock){
-            currentNode.topNeighbor.direction = IceMapNode.Direction.UP;
-            parentMap.put(currentNode.topNeighbor, currentNode);
-            queue.offer(currentNode.topNeighbor);
+    public static Stack<IceMapNode.Path> reconstructPath(IceMapNode startNode, IceMapNode.Path finishedPath, Set<IceMapNode.Path>  pathMap) {
+        IceMapNode.Path currentPath = finishedPath;
+        Stack<IceMapNode.Path> shortestPath = new Stack<>();
+        shortestPath.push(finishedPath);
+
+        while(currentPath.getStartNode() != startNode){
+            for (IceMapNode.Path path : pathMap) {
+                if(path.getEndNode() == currentPath.getStartNode()) {
+                    currentPath = path;
+                    shortestPath.push(path);
+                    break;
+                }
+            }
         }
-        if (currentNode.rightNeighbor != null && !currentNode.rightNeighbor.isRock){
-            currentNode.rightNeighbor.direction = IceMapNode.Direction.RIGHT;
-            parentMap.put(currentNode.rightNeighbor, currentNode);
-            queue.offer(currentNode.rightNeighbor);
-        }
-        if (currentNode.bottomNeighbor != null && !currentNode.bottomNeighbor.isRock){
-            currentNode.bottomNeighbor.direction = IceMapNode.Direction.DOWN;
-            parentMap.put(currentNode.bottomNeighbor, currentNode);
-            queue.offer(currentNode.bottomNeighbor);
-        }
-        if (currentNode.leftNeighbor != null && !currentNode.leftNeighbor.isRock){
-            currentNode.leftNeighbor.direction = IceMapNode.Direction.LEFT;
-            parentMap.put(currentNode.leftNeighbor, currentNode);
-            queue.offer(currentNode.leftNeighbor);
+        return shortestPath;
+    }
+
+    public static void exploreAndEnqueuePaths(IceMapNode startNode, IceMapNode finishNode, Set<IceMapNode> visited,
+                                              PriorityQueue<IceMapNode.Path> queue, Set<IceMapNode.Path>  pathMap) {
+        // Explore and enqueue paths in all directions
+        for (IceMapNode.Direction direction : IceMapNode.Direction.values()) {
+            IceMapNode endNode = startNode.getEndNodeInDirection(direction, finishNode);
+            if (endNode != null && !visited.contains(endNode)) {
+
+                visited.add(endNode);
+                IceMapNode.Path newpath = new IceMapNode.Path(startNode, endNode);
+                queue.offer(newpath);
+                pathMap.add(newpath);
+            }
         }
     }
 
-    public static void moveUp(IceMapNode currentNode, Queue<IceMapNode> queue, Map<IceMapNode,IceMapNode> parentMap) {
-        if (currentNode.topNeighbor != null && !currentNode.topNeighbor.isRock ) {
-            currentNode.topNeighbor.direction = IceMapNode.Direction.UP;
-            parentMap.put(currentNode.topNeighbor, currentNode);
-            queue.offer(currentNode.topNeighbor);
-        } else {
-            addNeighborsToQueue(currentNode, queue, parentMap);
-        }
-    }
-
-    public static void moveRight(IceMapNode currentNode, Queue<IceMapNode> queue, Map<IceMapNode,IceMapNode> parentMap) {
-        if (currentNode.rightNeighbor != null && !currentNode.rightNeighbor.isRock ) {
-            currentNode.rightNeighbor.direction = IceMapNode.Direction.RIGHT;
-            parentMap.put(currentNode.rightNeighbor, currentNode);
-            queue.offer(currentNode.rightNeighbor);
-        } else {
-            addNeighborsToQueue(currentNode, queue, parentMap);
-        }
-    }
-
-    public static void moveDown(IceMapNode currentNode, Queue<IceMapNode> queue, Map<IceMapNode,IceMapNode> parentMap) {
-        if (currentNode.bottomNeighbor != null && !currentNode.bottomNeighbor.isRock) {
-            currentNode.bottomNeighbor.direction = IceMapNode.Direction.DOWN;
-            parentMap.put(currentNode.bottomNeighbor, currentNode);
-            queue.offer(currentNode.bottomNeighbor);
-        } else {
-            addNeighborsToQueue(currentNode, queue, parentMap);
-        }
-    }
-
-    public static void moveLeft(IceMapNode currentNode, Queue<IceMapNode> queue, Map<IceMapNode,IceMapNode> parentMap) {
-        if (currentNode.leftNeighbor != null && !currentNode.leftNeighbor.isRock) {
-            currentNode.leftNeighbor.direction = IceMapNode.Direction.LEFT;
-            parentMap.put(currentNode.leftNeighbor, currentNode);
-            queue.offer(currentNode.leftNeighbor);
-        } else {
-            addNeighborsToQueue(currentNode, queue, parentMap);
-        }
-    }
-
-    public static List<IceMapNode> reconstructPath(Map<IceMapNode, IceMapNode> parentMap, IceMapNode finishNode) {
-        List<IceMapNode> path = new ArrayList<>();
-        IceMapNode currentNode = finishNode;
-
-        while (currentNode != null) {
-            path.add(currentNode);
-            currentNode = parentMap.get(currentNode);
-        }
-
-        Collections.reverse(path);
-        return path;
-    }
 
     // write map data to a file (for test purpose)
     public static void writeMapToFile() throws IOException {
