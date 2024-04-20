@@ -11,6 +11,8 @@ import java.util.Stack;
 public class SlidingPuzzles {
     public static void main(String[] args) {
         try {
+            long startTime = System.nanoTime(); // start time
+
             writeMapToFile();
             char[][] map = parseMap("MapData.txt");
             System.out.println("Map successfully parsed\n");
@@ -22,6 +24,11 @@ public class SlidingPuzzles {
                 printPathSteps(iceMap, shortestPath);
             }
             else System.out.println("\nPath not found!");
+
+            long endTime = System.nanoTime(); // end time
+            long elapsedTime = endTime - startTime;
+            System.out.println();
+            System.out.println("Time taken: " + elapsedTime + " nanoseconds");
 
         } catch (IOException e) {
             System.err.println("Error reading input file: " + e.getMessage());
