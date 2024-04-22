@@ -3,7 +3,7 @@ public class IceMapNode {
     private final int column;
     private final boolean isRock;
     private IceMapNode topNeighbor,rightNeighbor,bottomNeighbor,leftNeighbor;
-    private int distance = 0;
+    private int distanceFromStart = 0;
 
     public enum Direction {
         UP, DOWN, LEFT, RIGHT
@@ -66,18 +66,6 @@ public class IceMapNode {
     }
 
 
-    // Method to get the distance between two nodes
-    public int getDistanceToNode(IceMapNode endNode) {
-        int distance = this.distance;
-        // Nodes are in the same row, calculate horizontal distance
-        if (this.row == endNode.row) distance += Math.abs(this.column - endNode.column);
-        else // Nodes are in the same column, calculate vertical distance
-            if (this.column == endNode.column) distance += Math.abs(this.row - endNode.row);
-            else distance = -1;
-        endNode.distance = distance;
-        return distance;
-    }
-
     // Class to represent a path between two nodes
     public static class Path implements Comparable<Path> {
         private final IceMapNode startNode;
@@ -87,7 +75,19 @@ public class IceMapNode {
         public Path(IceMapNode startNode, IceMapNode endNode) {
             this.startNode = startNode;
             this.endNode = endNode;
-            this.distance = startNode.getDistanceToNode(endNode);
+            this.distance = getDistanceToNode();
+        }
+
+        // Method to get the distance between two nodes
+        public int getDistanceToNode() {
+            int distance = startNode.distanceFromStart;
+            // Nodes are in the same row, calculate horizontal distance
+            if (startNode.row == endNode.row) distance += Math.abs(startNode.column - endNode.column);
+            else // Nodes are in the same column, calculate vertical distance
+                if (startNode.column == endNode.column) distance += Math.abs(startNode.row - endNode.row);
+                else distance = -1;
+            endNode.distanceFromStart = distance;
+            return distance;
         }
 
         public IceMapNode getStartNode() {
