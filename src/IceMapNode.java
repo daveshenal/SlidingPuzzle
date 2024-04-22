@@ -70,12 +70,16 @@ public class IceMapNode {
     public static class Path implements Comparable<Path> {
         private final IceMapNode startNode;
         private final IceMapNode endNode;
-        private final int distance;
+        private final double f;
+        private final double distance;
+        private final double h;
 
-        public Path(IceMapNode startNode, IceMapNode endNode) {
+        public Path(IceMapNode startNode, IceMapNode endNode, IceMapNode finishNode) {
             this.startNode = startNode;
             this.endNode = endNode;
             this.distance = getDistanceToNode();
+            this.h = calculateEuclideanDistance(finishNode);
+            this.f = this.distance + this.h;
         }
 
         // Method to get the distance between two nodes
@@ -98,9 +102,24 @@ public class IceMapNode {
             return endNode;
         }
 
+        public double calculateEuclideanDistance(IceMapNode finishNode) {
+            int dx = endNode.column - finishNode.column;
+            int dy = endNode.row - finishNode.row;
+            double distance = Math.sqrt(dx * dx + dy * dy);
+            return Math.round(distance * 100.0) / 100.0; // rounding to two decimal places
+        }
+
+        public void printPath() {
+            System.out.println("Start Node: (" + (startNode.getColumn()+1) + ", " + (startNode.getRow()+1) + ")");
+            System.out.println("End Node: (" + (endNode.getColumn()+1) + ", " + (endNode.getRow()+1) + ")");
+            System.out.println("Distance: " + distance);
+            System.out.println("H Value: " + h);
+            System.out.println("F Value: " + f);
+        }
+
         @Override
         public int compareTo(Path other) {
-            return Integer.compare(this.distance, other.distance);
+            return Double.compare(this.distance, other.distance);
         }
     }
 }

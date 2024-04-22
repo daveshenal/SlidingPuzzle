@@ -26,9 +26,9 @@ public class SlidingPuzzles {
             else System.out.println("\nPath not found!");
 
             long endTime = System.nanoTime(); // end time
-            long elapsedTime = endTime - startTime;
+            long timeTaken = endTime - startTime;
             System.out.println();
-            System.out.println("Time taken: " + elapsedTime + " nanoseconds");
+            System.out.println("Time taken: " + timeTaken + " nanoseconds");
 
         } catch (IOException e) {
             System.err.println("Error reading input file: " + e.getMessage());
@@ -68,9 +68,17 @@ public class SlidingPuzzles {
         visited.add(startNode);
         exploreAndEnqueuePaths(startNode, finishNode, visited, queue, pathMap);
 
+        int count = 0;
+
         while (!queue.isEmpty()) {
+            count++;
             IceMapNode.Path currentPath = queue.peek();
+
+            currentPath.printPath();
+            System.out.println();
+
             if (currentPath.getEndNode() == finishNode) {
+                System.out.println("Iteration count : " + count);
                 return reconstructPath(startNode, currentPath, pathMap);
             }
 
@@ -106,7 +114,7 @@ public class SlidingPuzzles {
             if (endNode != null && !visited.contains(endNode)) {
 
                 visited.add(endNode);
-                IceMapNode.Path newpath = new IceMapNode.Path(startNode, endNode);
+                IceMapNode.Path newpath = new IceMapNode.Path(startNode, endNode, finishNode);
                 queue.offer(newpath);
                 pathMap.add(newpath);
             }
