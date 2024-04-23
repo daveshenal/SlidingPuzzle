@@ -4,6 +4,7 @@ public class IceMapNode {
     private final boolean isRock;
     private IceMapNode topNeighbor,rightNeighbor,bottomNeighbor,leftNeighbor;
     private int distanceFromStart = 0;
+    IceMapNode pathParent;
 
     public enum Direction {
         UP, DOWN, LEFT, RIGHT
@@ -119,7 +120,7 @@ public class IceMapNode {
 
         @Override
         public int compareTo(Path other) {
-            return Double.compare(this.distance, other.distance);
+            return Double.compare(this.f, other.f);
         }
     }
 }

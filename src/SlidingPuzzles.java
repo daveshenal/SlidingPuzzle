@@ -3,25 +3,20 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.PriorityQueue;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
 
 public class SlidingPuzzles {
     public static void main(String[] args) {
         try {
-            long startTime = System.nanoTime(); // start time
 
-            writeMapToFile();
-            char[][] map = parseMap("MapData.txt");
-            System.out.println("Map successfully parsed\n");
-            printMap(map);
+            char[][] map = selectMap();
+            //printMap(map);
             IceMap iceMap = new IceMap(map);
-            Stack<IceMapNode.Path> shortestPath = findPath(iceMap.getStartNode(), iceMap.getEndNode());
+            long startTime = System.nanoTime(); // start time
+            List<IceMapNode> shortestPath = findPath(iceMap.getStartNode(), iceMap.getEndNode());
 
             if(shortestPath != null){
-                printPathSteps(iceMap, shortestPath);
+                printPathSteps(iceMap.getStartNode(), shortestPath);
             }
             else System.out.println("\nPath not found!");
 
@@ -35,17 +30,101 @@ public class SlidingPuzzles {
         }
     }
 
-    private static void printPathSteps(IceMap iceMap, Stack<IceMapNode.Path> shortestPath) {
+    private static char[][] selectMap() throws IOException {
+        Scanner scanner = new Scanner(System.in);
+
+        // Print menu options
+        System.out.println("Select a category:");
+        System.out.println("1. Benchmark Series");
+        System.out.println("2. Example puzzles");
+        System.out.println("3. Write a custom map to file (for developer testings)");
+
+        // Get user input for category selection
+        int categoryChoice = scanner.nextInt();
+
+        switch (categoryChoice) {
+            case 1 -> {
+                // Benchmark Series
+                System.out.println("Select a puzzle from Benchmark Series:");
+                System.out.println("1. Puzzle 10");
+                System.out.println("2. Puzzle 20");
+                System.out.println("3. Puzzle 40");
+                System.out.println("4. Puzzle 80");
+                System.out.println("5. Puzzle 160");
+                System.out.println("6. Puzzle 320");
+                System.out.println("7. Puzzle 640");
+                System.out.println("8. Puzzle 1280");
+                System.out.println("9. Puzzle 2560");
+                int benchmarkChoice = scanner.nextInt();
+                System.out.println("You selected Benchmark Puzzle " + benchmarkChoice);
+                return parseMap("benchmark_series/puzzle_"+ getBenchPuzzleNum(benchmarkChoice)+".txt");
+            }
+            case 2 -> {
+                // Example puzzles
+                System.out.println("Select an example puzzle:");
+                for (int i = 1; i <= 25; i++) {
+                    System.out.println(i + ". Puzzle " + getExPuzzleNum(i) + " - " + getExPuzzleIndex(i));
+                }
+                int exampleChoice = scanner.nextInt();
+                System.out.println("You selected Example Puzzle " + exampleChoice);
+
+                return parseMap("examples/maze"+ getExPuzzleNum(exampleChoice)+"_"+ getExPuzzleIndex(exampleChoice)+".txt");
+            }
+            case 3 -> {
+                writeMapToFile();
+                return parseMap("MapData.txt");
+
+            }
+            default -> throw new IOException("Map is not rectangular");
+
+        }
+    }
+
+    public static int getBenchPuzzleNum(int n) {
+        // Calculate puzzle value using the formula: 10 * 2^(n-1)
+        return 10 * (int)Math.pow(2, n - 1);
+    }
+
+    // Method to determine puzzle number based on index
+    private static int getExPuzzleNum(int index) {
+        if (index <= 5) {
+            return 10;
+        } else if (index <= 10) {
+            return 15;
+        } else if (index <= 15) {
+            return 20;
+        } else if (index <= 20) {
+            return 25;
+        } else {
+            return 30;
+        }
+    }
+
+    // Method to determine puzzle index based on index
+    private static int getExPuzzleIndex(int index) {
+        if (index <= 5) {
+            return index;
+        } else {
+            if(index % 5 == 0)
+                return 5;
+            return index % 5;
+        }
+    }
+
+    private static void printPathSteps(IceMapNode startNode, List<IceMapNode> shortestPath) {
         System.out.println("\nPath to 'S' to 'F'\n------------------");
-        System.out.println("Start Node: (" + (iceMap.getStartNode().getColumn() +1) + ", " +
-                (iceMap.getStartNode().getRow() +1) + ")");
-        while (!shortestPath.isEmpty()) {
-            IceMapNode.Path path = shortestPath.pop();
+        System.out.println("1. Start Node: (" + (startNode.getColumn() +1) + ", " +
+                (startNode.getRow() +1) + ")");
+        int count = 2;
+        shortestPath.remove(0);
+        for(IceMapNode node: shortestPath){
+            System.out.print(count+ ". ");
+            count++;
             int startNodeColumn,startNodeRow,endNodeColumn,endNodeRow;
-            startNodeColumn = path.getStartNode().getColumn();
-            startNodeRow = path.getStartNode().getRow();
-            endNodeColumn = path.getEndNode().getColumn();
-            endNodeRow = path.getEndNode().getRow();
+            startNodeColumn = node.pathParent.getColumn();
+            startNodeRow = node.pathParent.getRow();
+            endNodeColumn = node.getColumn();
+            endNodeRow = node.getRow();
 
             if(startNodeColumn == endNodeColumn){ // vertical move
                 if(endNodeRow > startNodeRow) System.out.print("Move down to "); // down
@@ -55,12 +134,12 @@ public class SlidingPuzzles {
                 System.out.print("Move right to "); // right
             } else System.out.print("Move left to "); // left
 
-            System.out.println("(" + (path.getEndNode().getColumn() +1) + ", " + (path.getEndNode().getRow() +1) + ")");
+            System.out.println("(" + (node.getColumn() +1) + ", " + (node.getRow() +1) + ")");
         }
         System.out.println("Done :)");
     }
 
-    public static Stack<IceMapNode.Path> findPath(IceMapNode startNode, IceMapNode finishNode) {
+    public static List<IceMapNode> findPath(IceMapNode startNode, IceMapNode finishNode) {
         PriorityQueue<IceMapNode.Path> queue = new PriorityQueue<>();
         Set<IceMapNode.Path>  pathMap = new HashSet<>();
         Set<IceMapNode>  visited = new HashSet<>();
@@ -74,12 +153,9 @@ public class SlidingPuzzles {
             count++;
             IceMapNode.Path currentPath = queue.peek();
 
-            currentPath.printPath();
-            System.out.println();
-
             if (currentPath.getEndNode() == finishNode) {
                 System.out.println("Iteration count : " + count);
-                return reconstructPath(startNode, currentPath, pathMap);
+                return reconstructPath(finishNode);
             }
 
             exploreAndEnqueuePaths(currentPath.getEndNode(), finishNode, visited, queue, pathMap);
@@ -89,30 +165,26 @@ public class SlidingPuzzles {
         return null; // No path found
     }
 
-    public static Stack<IceMapNode.Path> reconstructPath(IceMapNode startNode, IceMapNode.Path finishedPath, Set<IceMapNode.Path>  pathMap) {
-        IceMapNode.Path currentPath = finishedPath;
-        Stack<IceMapNode.Path> shortestPath = new Stack<>();
-        shortestPath.push(finishedPath);
+    public static Stack<IceMapNode> reconstructPath(IceMapNode finishedNode) {
+        Stack<IceMapNode> path = new Stack<>();
+        IceMapNode currentNode = finishedNode;
 
-        while(currentPath.getStartNode() != startNode){
-            for (IceMapNode.Path path : pathMap) {
-                if(path.getEndNode() == currentPath.getStartNode()) {
-                    currentPath = path;
-                    shortestPath.push(path);
-                    break;
-                }
-            }
+        while (currentNode != null) {
+            path.add(currentNode);
+            currentNode = currentNode.pathParent;
         }
-        return shortestPath;
+        Collections.reverse(path);
+        return path;
     }
 
     public static void exploreAndEnqueuePaths(IceMapNode startNode, IceMapNode finishNode, Set<IceMapNode> visited,
                                               PriorityQueue<IceMapNode.Path> queue, Set<IceMapNode.Path>  pathMap) {
+
         // Explore and enqueue paths in all directions
         for (IceMapNode.Direction direction : IceMapNode.Direction.values()) {
             IceMapNode endNode = startNode.getEndNodeInDirection(direction, finishNode);
             if (endNode != null && !visited.contains(endNode)) {
-
+                endNode.pathParent = startNode;
                 visited.add(endNode);
                 IceMapNode.Path newpath = new IceMapNode.Path(startNode, endNode, finishNode);
                 queue.offer(newpath);
