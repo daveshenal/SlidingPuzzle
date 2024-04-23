@@ -121,8 +121,8 @@ public class SlidingPuzzles {
             System.out.print(count+ ". ");
             count++;
             int startNodeColumn,startNodeRow,endNodeColumn,endNodeRow;
-            startNodeColumn = node.pathParent.getColumn();
-            startNodeRow = node.pathParent.getRow();
+            startNodeColumn = node.getPathParent().getColumn();
+            startNodeRow = node.getPathParent().getRow();
             endNodeColumn = node.getColumn();
             endNodeRow = node.getRow();
 
@@ -140,25 +140,24 @@ public class SlidingPuzzles {
     }
 
     public static List<IceMapNode> findPath(IceMapNode startNode, IceMapNode finishNode) {
-        PriorityQueue<IceMapNode.Path> queue = new PriorityQueue<>();
-        Set<IceMapNode.Path>  pathMap = new HashSet<>();
+        PriorityQueue<IceMapNode> queue = new PriorityQueue<>();
         Set<IceMapNode>  visited = new HashSet<>();
 
         visited.add(startNode);
-        exploreAndEnqueuePaths(startNode, finishNode, visited, queue, pathMap);
+        exploreAndEnqueuePaths(startNode, finishNode, visited, queue);
 
         int count = 0;
 
         while (!queue.isEmpty()) {
             count++;
-            IceMapNode.Path currentPath = queue.peek();
+            IceMapNode currentNode = queue.peek();
 
-            if (currentPath.getEndNode() == finishNode) {
+            if (currentNode == finishNode) {
                 System.out.println("Iteration count : " + count);
                 return reconstructPath(finishNode);
             }
 
-            exploreAndEnqueuePaths(currentPath.getEndNode(), finishNode, visited, queue, pathMap);
+            exploreAndEnqueuePaths(currentNode, finishNode, visited, queue);
 
             queue.remove();
         }
@@ -171,24 +170,23 @@ public class SlidingPuzzles {
 
         while (currentNode != null) {
             path.add(currentNode);
-            currentNode = currentNode.pathParent;
+            currentNode = currentNode.getPathParent();
         }
         Collections.reverse(path);
         return path;
     }
 
     public static void exploreAndEnqueuePaths(IceMapNode startNode, IceMapNode finishNode, Set<IceMapNode> visited,
-                                              PriorityQueue<IceMapNode.Path> queue, Set<IceMapNode.Path>  pathMap) {
+                                              PriorityQueue<IceMapNode> queue) {
 
         // Explore and enqueue paths in all directions
         for (IceMapNode.Direction direction : IceMapNode.Direction.values()) {
             IceMapNode endNode = startNode.getEndNodeInDirection(direction, finishNode);
             if (endNode != null && !visited.contains(endNode)) {
-                endNode.pathParent = startNode;
+                endNode.setPathParent(startNode);
+                endNode.setH(endNode.calculateEuclideanDistance(finishNode));
                 visited.add(endNode);
-                IceMapNode.Path newpath = new IceMapNode.Path(startNode, endNode, finishNode);
-                queue.offer(newpath);
-                pathMap.add(newpath);
+                queue.offer(endNode);
             }
         }
     }
