@@ -10,7 +10,7 @@ public class SlidingPuzzles {
         try {
 
             char[][] map = selectMap();
-            //printMap(map);
+            printMap(map);
             IceMap iceMap = new IceMap(map);
             long startTime = System.nanoTime(); // start time
             List<IceMapNode> shortestPath = findPath(iceMap.getStartNode(), iceMap.getEndNode());
@@ -23,7 +23,7 @@ public class SlidingPuzzles {
             long endTime = System.nanoTime(); // end time
             long timeTaken = endTime - startTime;
             System.out.println();
-            System.out.println("Time taken: " + timeTaken + " nanoseconds");
+            System.out.println("Time taken: " + timeTaken/1_000_000_000.0 + " seconds");
 
         } catch (IOException e) {
             System.err.println("Error reading input file: " + e.getMessage());
@@ -152,6 +152,9 @@ public class SlidingPuzzles {
             count++;
             IceMapNode currentNode = queue.peek();
 
+//            currentNode.printNodeInfo();
+//            System.out.println();
+
             if (currentNode == finishNode) {
                 System.out.println("Iteration count : " + count);
                 return reconstructPath(finishNode);
@@ -176,15 +179,14 @@ public class SlidingPuzzles {
         return path;
     }
 
-    public static void exploreAndEnqueuePaths(IceMapNode startNode, IceMapNode finishNode, Set<IceMapNode> visited,
+    public static void exploreAndEnqueuePaths(IceMapNode currentNode, IceMapNode finishNode, Set<IceMapNode> visited,
                                               PriorityQueue<IceMapNode> queue) {
 
         // Explore and enqueue paths in all directions
         for (IceMapNode.Direction direction : IceMapNode.Direction.values()) {
-            IceMapNode endNode = startNode.getEndNodeInDirection(direction, finishNode);
+            IceMapNode endNode = currentNode.getEndNodeInDirection(direction, finishNode);
             if (endNode != null && !visited.contains(endNode)) {
-                endNode.setPathParent(startNode);
-                endNode.setH(endNode.calculateEuclideanDistance(finishNode));
+                endNode.setPathAttributes(currentNode,finishNode);
                 visited.add(endNode);
                 queue.offer(endNode);
             }
@@ -202,7 +204,7 @@ public class SlidingPuzzles {
                 {'.', 'F', '.', '.','.', '.','.', '.', '0', '.'},
                 {'.', '0', '.', '.','.', '.','.', '.', '.', '.'},
                 {'.', '.', '.', '.','.', '.','.', '0', '.', '.'},
-                {'.', '0', '.', '0','.', '.','0', '.', '.', '0'},
+                {'.', '.', '.', '0','.', '.','0', '.', '.', '0'},
                 {'0', '.', '.', '.','.', '.','.', '.', '.', '.'},
                 {'.', '0', '0', '.','.', '.','.', '.', '0', '.'},
         };

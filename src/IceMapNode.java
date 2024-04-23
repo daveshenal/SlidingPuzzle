@@ -5,7 +5,7 @@ public class IceMapNode implements Comparable<IceMapNode> {
     private IceMapNode topNeighbor,rightNeighbor,bottomNeighbor,leftNeighbor;
     private int distanceFromStart = 0;
     private double fScore;
-    private double h;
+    private double heuristic;
     private IceMapNode pathParent;
 
     public enum Direction {
@@ -47,19 +47,23 @@ public class IceMapNode implements Comparable<IceMapNode> {
     }
 
 
-    public void setH(double h) {
-        this.h = h;
-    }
+   public void setPathAttributes(IceMapNode pathParent, IceMapNode finishNode){
+        this.pathParent = pathParent;
 
+        int distanceFromStart = getDistanceToNode(pathParent);
+        this.distanceFromStart = distanceFromStart;
 
+        double heuristic = calculateEuclideanDistance(finishNode);
+        this.heuristic = heuristic;
+
+        this.fScore = distanceFromStart+heuristic;
+   }
 
     public IceMapNode getPathParent() {
         return pathParent;
     }
 
-    public void setPathParent(IceMapNode pathParent) {
-        this.pathParent = pathParent;
-    }
+
 
     public int getDistanceToNode(IceMapNode startNode) {
         int distance = startNode.distanceFromStart;
@@ -107,11 +111,11 @@ public class IceMapNode implements Comparable<IceMapNode> {
         return Double.compare(this.fScore, other.fScore);
     }
 
-    public void printPath() {
+    public void printNodeInfo() {
         System.out.println("Start Node: (" + (pathParent.getColumn()+1) + ", " + (pathParent.getRow()+1) + ")");
         System.out.println("End Node: (" + (this.getColumn()+1) + ", " + (this.getRow()+1) + ")");
         System.out.println("Distance: " + this.distanceFromStart);
-        System.out.println("H Value: " + h);
+        System.out.println("H Value: " + heuristic);
         System.out.println("F Value: " + fScore);
     }
 
