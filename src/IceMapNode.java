@@ -63,7 +63,9 @@ public class IceMapNode implements Comparable<IceMapNode> {
         return pathParent;
     }
 
-
+    public int getDistanceFromStart() {
+        return distanceFromStart;
+    }
 
     public int getDistanceToNode(IceMapNode startNode) {
         int distance = startNode.distanceFromStart;
@@ -72,7 +74,6 @@ public class IceMapNode implements Comparable<IceMapNode> {
         else // Nodes are in the same column, calculate vertical distance
             if (startNode.column == this.column) distance += Math.abs(startNode.row - this.row);
             else distance = -1;
-        this.distanceFromStart = distance;
         return distance;
     }
 

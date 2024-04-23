@@ -10,15 +10,12 @@ public class SlidingPuzzles {
         try {
 
             char[][] map = selectMap();
-            printMap(map);
+//            printMap(map);
             IceMap iceMap = new IceMap(map);
             long startTime = System.nanoTime(); // start time
             List<IceMapNode> shortestPath = findPath(iceMap.getStartNode(), iceMap.getEndNode());
 
-            if(shortestPath != null){
-                printPathSteps(iceMap.getStartNode(), shortestPath);
-            }
-            else System.out.println("\nPath not found!");
+            printPathSteps(iceMap.getStartNode(), shortestPath);
 
             long endTime = System.nanoTime(); // end time
             long timeTaken = endTime - startTime;
@@ -30,21 +27,19 @@ public class SlidingPuzzles {
         }
     }
 
+
+
     private static char[][] selectMap() throws IOException {
         Scanner scanner = new Scanner(System.in);
-
-        // Print menu options
         System.out.println("Select a category:");
         System.out.println("1. Benchmark Series");
         System.out.println("2. Example puzzles");
         System.out.println("3. Write a custom map to file (for developer testings)");
 
-        // Get user input for category selection
         int categoryChoice = scanner.nextInt();
 
         switch (categoryChoice) {
             case 1 -> {
-                // Benchmark Series
                 System.out.println("Select a puzzle from Benchmark Series:");
                 System.out.println("1. Puzzle 10");
                 System.out.println("2. Puzzle 20");
@@ -60,14 +55,12 @@ public class SlidingPuzzles {
                 return parseMap("benchmark_series/puzzle_"+ getBenchPuzzleNum(benchmarkChoice)+".txt");
             }
             case 2 -> {
-                // Example puzzles
                 System.out.println("Select an example puzzle:");
                 for (int i = 1; i <= 25; i++) {
                     System.out.println(i + ". Puzzle " + getExPuzzleNum(i) + " - " + getExPuzzleIndex(i));
                 }
                 int exampleChoice = scanner.nextInt();
                 System.out.println("You selected Example Puzzle " + exampleChoice);
-
                 return parseMap("examples/maze"+ getExPuzzleNum(exampleChoice)+"_"+ getExPuzzleIndex(exampleChoice)+".txt");
             }
             case 3 -> {
@@ -76,14 +69,15 @@ public class SlidingPuzzles {
 
             }
             default -> throw new IOException("Map is not rectangular");
-
         }
     }
+
 
     public static int getBenchPuzzleNum(int n) {
         // Calculate puzzle value using the formula: 10 * 2^(n-1)
         return 10 * (int)Math.pow(2, n - 1);
     }
+
 
     // Method to determine puzzle number based on index
     private static int getExPuzzleNum(int index) {
@@ -100,6 +94,7 @@ public class SlidingPuzzles {
         }
     }
 
+
     // Method to determine puzzle index based on index
     private static int getExPuzzleIndex(int index) {
         if (index <= 5) {
@@ -111,8 +106,15 @@ public class SlidingPuzzles {
         }
     }
 
+
+
     private static void printPathSteps(IceMapNode startNode, List<IceMapNode> shortestPath) {
-        System.out.println("\nPath to 'S' to 'F'\n------------------");
+        if(shortestPath.size() == 1){
+            System.out.println("No Path found!");
+            return;
+        }
+
+        System.out.println("\nPath From 'S' to 'F'\n---------------------");
         System.out.println("1. Start Node: (" + (startNode.getColumn() +1) + ", " +
                 (startNode.getRow() +1) + ")");
         int count = 2;
@@ -139,6 +141,8 @@ public class SlidingPuzzles {
         System.out.println("Done :)");
     }
 
+
+
     public static List<IceMapNode> findPath(IceMapNode startNode, IceMapNode finishNode) {
         PriorityQueue<IceMapNode> queue = new PriorityQueue<>();
         Set<IceMapNode>  visited = new HashSet<>();
@@ -155,16 +159,11 @@ public class SlidingPuzzles {
 //            currentNode.printNodeInfo();
 //            System.out.println();
 
-            if (currentNode == finishNode) {
-                System.out.println("Iteration count : " + count);
-                return reconstructPath(finishNode);
-            }
-
             exploreAndEnqueuePaths(currentNode, finishNode, visited, queue);
-
             queue.remove();
         }
-        return null; // No path found
+        System.out.println("Iteration count : " + count);
+        return reconstructPath(finishNode);
     }
 
     public static Stack<IceMapNode> reconstructPath(IceMapNode finishedNode) {
@@ -185,6 +184,12 @@ public class SlidingPuzzles {
         // Explore and enqueue paths in all directions
         for (IceMapNode.Direction direction : IceMapNode.Direction.values()) {
             IceMapNode endNode = currentNode.getEndNodeInDirection(direction, finishNode);
+            if(endNode == finishNode){
+                if(finishNode.getDistanceFromStart() > endNode.getDistanceToNode(currentNode)) {
+                    endNode.setPathAttributes(currentNode,finishNode);
+                    return;
+                }
+            }
             if (endNode != null && !visited.contains(endNode)) {
                 endNode.setPathAttributes(currentNode,finishNode);
                 visited.add(endNode);
@@ -197,16 +202,21 @@ public class SlidingPuzzles {
     // write map data to a file (for test purpose)
     public static void writeMapToFile() throws IOException {
         char[][] map = {
-                {'.', '.', '.', '.','.', '0','.', '.', '.', 'S'},
                 {'.', '.', '.', '.','0', '.','.', '.', '.', '.'},
-                {'0', '.', '.', '.','.', '.','0', '.', '.', '0'},
-                {'.', '.', '.', '0','.', '.','.', '.', '0', '.'},
-                {'.', 'F', '.', '.','.', '.','.', '.', '0', '.'},
-                {'.', '0', '.', '.','.', '.','.', '.', '.', '.'},
+                {'.', '.', '.', '.','.', '.','.', '.', '.', '.'},
+                {'0', '.', '.', '.','.', '0','.', '.', '.', '.'},
+                {'.', '.', '.', '.','0', 'S','0', '.', '.', '.'},
+                {'.', '.', '.', '.','.', '0','.', '.', '.', '.'},
+                {'.', '.', '.', '.','.', '.','.', '.', '.', '.'},
+                {'.', '.', '0', '0','.', '.','.', '.', '.', '.'},
+                {'.', '0', '.', '.','0', '0','.', '.', '.', '.'},
+                {'.', '.', '.', 'F','.', '.','.', '.', '.', '.'},
+                {'.', '0', '.', '.','0', '.','0', '.', '.', '.'},
+                {'.', '0', '.', '.','.', '.','.', '0', '.', '.'},
                 {'.', '.', '.', '.','.', '.','.', '0', '.', '.'},
-                {'.', '.', '.', '0','.', '.','0', '.', '.', '0'},
-                {'0', '.', '.', '.','.', '.','.', '.', '.', '.'},
-                {'.', '0', '0', '.','.', '.','.', '.', '0', '.'},
+                {'0', '.', '.', '.','.', '.','0', '.', '.', '.'},
+                {'.', '.', '0', '.','.', '.','.', '.', '.', '.'},
+                {'.', '.', '0', '.','.', '.','.', '.', '.', '.'},
         };
 
         BufferedWriter writer = new BufferedWriter(new FileWriter("MapData.txt"));
@@ -217,7 +227,6 @@ public class SlidingPuzzles {
             }
             writer.newLine();
         }
-
         writer.close();
         System.out.println("Map successfully written to file.");
     }
