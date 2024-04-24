@@ -22,8 +22,10 @@ public class IceMap {
                 iceMap[i][j] = new IceMapNode(i, j, isObstacle);
                 if(map[i][j] == 'S')
                     this.startNode = iceMap[i][j];
-                else if (map[i][j] == 'F')
+                else if (map[i][j] == 'F') {
                     this.endNode = iceMap[i][j];
+                    this.endNode.setDistanceFromStart(Integer.MAX_VALUE);
+                }
             }
         }
 

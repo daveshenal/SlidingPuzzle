@@ -21,7 +21,7 @@ public class SlidingPuzzles {
             long startTime = System.nanoTime(); // start time
             List<IceMapNode> shortestPath = findPath(iceMap.getStartNode(), iceMap.getEndNode());
 
-            printPathSteps(iceMap.getStartNode(), shortestPath);
+//            printPathSteps(iceMap.getStartNode(), shortestPath);
 
             long endTime = System.nanoTime(); // end time
             long timeTaken = endTime - startTime;
@@ -159,12 +159,16 @@ public class SlidingPuzzles {
         int count = 0;
 
         while (!queue.isEmpty()) {
-            count++;
-            IceMapNode currentNode = queue.peek();
+            IceMapNode currentNode = queue.poll();
+
+            if(finishNode.getDistanceFromStart() < currentNode.getDistanceFromStart()) {
+                System.out.println("skipped");
+                continue;
+            }
 //            currentNode.printNodeInfo();
 //            System.out.println();
             exploreAndEnqueuePaths(currentNode, finishNode, visited, queue);
-            queue.remove();
+            count++;
         }
         System.out.println("Iteration count : " + count);
         return reconstructPath(finishNode);
@@ -212,14 +216,14 @@ public class SlidingPuzzles {
                 {'.', '.', '.', '.','.', 'S','0', '.', '.', '.'},
                 {'.', '.', '.', '.','.', '0','.', '.', '.', '.'},
                 {'.', '.', '.', '.','.', '.','.', '.', '.', '.'},
-                {'.', '.', '0', '0','.', '.','.', '.', '.', '.'},
-                {'.', '0', '.', '.','0', '0','.', '.', '.', '.'},
+                {'.', '.', '0', '.','.', '.','.', '.', '.', '.'},
+                {'.', '.', '.', '.','0', '0','.', '.', '.', '.'},
                 {'.', '.', '.', 'F','.', '.','.', '.', '.', '.'},
                 {'.', '0', '.', '.','0', '.','0', '.', '.', '.'},
-                {'.', '0', '.', '.','.', '.','.', '0', '.', '.'},
+                {'.', '0', '.', '.','.', '.','.', '.', '.', '.'},
                 {'.', '.', '.', '.','.', '.','.', '0', '.', '.'},
-                {'0', '.', '.', '.','.', '.','0', '.', '.', '.'},
-                {'.', '.', '0', '.','.', '.','.', '.', '.', '.'},
+                {'0', '.', '.', '.','.', '.','.', '.', '.', '.'},
+                {'.', '.', '.', '.','.', '.','.', '.', '.', '.'},
                 {'.', '.', '0', '.','.', '.','.', '.', '.', '.'},
         };
 
