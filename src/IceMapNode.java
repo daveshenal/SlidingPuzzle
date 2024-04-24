@@ -1,11 +1,9 @@
 public class IceMapNode implements Comparable<IceMapNode> {
-    private final int row;
-    private final int column;
+    private final int row, column;
     private final boolean isRock;
     private IceMapNode topNeighbor,rightNeighbor,bottomNeighbor,leftNeighbor;
     private int distanceFromStart = 0;
-    private double fScore;
-    private double heuristic;
+    private double fScore, heuristic;
     private IceMapNode pathParent;
 
     public enum Direction {
