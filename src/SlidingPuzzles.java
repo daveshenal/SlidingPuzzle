@@ -58,7 +58,7 @@ public class SlidingPuzzles {
                 System.out.println("9. Puzzle 2560");
                 int benchmarkChoice = scanner.nextInt();
                 System.out.println("You selected Benchmark Puzzle " + benchmarkChoice);
-                return parseMap("benchmark_series/puzzle_"+ getBenchPuzzleNum(benchmarkChoice)+".txt");
+                return selectBenchmarkMap(benchmarkChoice);
             }
             case 2 -> {
                 System.out.println("Select an example puzzle:");
@@ -67,11 +67,10 @@ public class SlidingPuzzles {
                 }
                 int exampleChoice = scanner.nextInt();
                 System.out.println("You selected Example Puzzle " + exampleChoice);
-                return parseMap("examples/maze"+ getExPuzzleNum(exampleChoice)+"_"+ getExPuzzleIndex(exampleChoice)+".txt");
+                return selectExampleMap(exampleChoice);
             }
             case 3 -> {
-                writeMapToFile();
-                return parseMap("MapData.txt");
+                return selectCustomMap();
 
             }
             default -> throw new IOException("Map is not rectangular");
@@ -110,6 +109,21 @@ public class SlidingPuzzles {
                 return 5;
             return index % 5;
         }
+    }
+
+    public static char[][] selectBenchmarkMap(int benchmarkChoice) throws IOException {
+        String filePath = "benchmark_series/puzzle_"+ getBenchPuzzleNum(benchmarkChoice)+".txt";
+        return parseMap(filePath);
+    }
+
+    public static char[][] selectExampleMap(int exampleChoice) throws IOException {
+        String filePath = "examples/maze"+ getExPuzzleNum(exampleChoice)+"_"+ getExPuzzleIndex(exampleChoice)+".txt";
+        return parseMap(filePath);
+    }
+    public static char[][] selectCustomMap() throws IOException {
+        writeMapToFile();
+        String filePath = "MapData.txt";
+        return parseMap(filePath);
     }
 
 
