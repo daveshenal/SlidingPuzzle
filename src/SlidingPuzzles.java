@@ -21,7 +21,7 @@ public class SlidingPuzzles {
             long startTime = System.nanoTime(); // start time
             List<IceMapNode> shortestPath = findPath(iceMap.getStartNode(), iceMap.getEndNode());
 
-//            printPathSteps(iceMap.getStartNode(), shortestPath);
+            printPathSteps(iceMap.getStartNode(), shortestPath);
 
             long endTime = System.nanoTime(); // end time
             long timeTaken = endTime - startTime;
