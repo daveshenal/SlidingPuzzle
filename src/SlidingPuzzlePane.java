@@ -1,4 +1,5 @@
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -8,14 +9,22 @@ import java.util.List;
 
 
 public class SlidingPuzzlePane extends GridPane {
-    char[][] map;
+    private char[][] map;
+    private String selectedCellType = "Start";
+    private int startRow,startCol,endRow,endCol;
+    private Boolean startCellAdded = false;
+    private Boolean endCellAdded = false;
 
     public SlidingPuzzlePane(char[][] selectedMap) {
         this.map = selectedMap;
-        drawMap(selectedMap);
+        drawMap();
     }
 
-    public void drawMap(char[][] map) {
+    public void setMap(char[][] map) {
+        this.map = map;
+    }
+
+    public void drawMap() {
         this.getChildren().clear();
 
         this.setAlignment(Pos.CENTER);
@@ -51,7 +60,9 @@ public class SlidingPuzzlePane extends GridPane {
         }
     }
 
-    public void printPathSteps(List<IceMapNode> path) {
+    public void printPathSteps() {
+        IceMap iceMap = new IceMap(map);
+        List<IceMapNode> path = SlidingPuzzles.findPath(iceMap.getStartNode(), iceMap.getEndNode());
         Thread pathPrintingThread = new Thread(() -> {
             for (int i = 0; i < path.size() - 1; i++) {
                 IceMapNode start = path.get(i);
@@ -108,6 +119,115 @@ public class SlidingPuzzlePane extends GridPane {
                 }
             }
         }
+    }
+
+    public void drawCustomMap(int rows, int column) {
+        this.map =  new char[rows][column];
+        this.getChildren().clear();
+
+        this.setAlignment(Pos.CENTER);
+        this.setHgap(1);
+        this.setVgap(1);
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < column; j++) {
+                this.map[i][j] = '.';
+                Rectangle rectangle = new Rectangle(30, 30);
+                rectangle.setStroke(Color.GRAY);
+                rectangle.setStrokeWidth(1);
+
+                rectangle.setFill(Color.LIGHTBLUE);
+
+                // Add event handling for mouse click
+                int finalI = i;
+                int finalJ = j;
+                rectangle.setOnMouseClicked(event -> handleGridClick(rectangle, finalI, finalJ));
+
+                this.add(rectangle, j, i);
+            }
+        }
+    }
+
+    public void setSelectedCellType(String cellType) {
+        this.selectedCellType = cellType;
+    }
+
+    // Method to handle grid click event
+    private void handleGridClick(Rectangle rectangle, int row, int col) {
+        char oldCellValue = map[row][col];
+        char newCellValue = selectedCellValue();
+
+        if (newCellValue == '0') {
+            if(oldCellValue == newCellValue){
+                map[row][col] = '.';
+                rectangle.setFill(Color.LIGHTBLUE);
+            }
+            else {
+                map[row][col] = '0';
+                rectangle.setFill(Color.GRAY);
+            }
+
+        } else if (newCellValue == 'S' || newCellValue == 'F') {
+            if(oldCellValue != newCellValue){
+                if(newCellValue == 'S'){
+                    if(!startCellAdded){
+                        startCellAdded = true;
+                    }
+                    else {
+                        map[startRow][startCol] = '.';
+                        getRectangleByRowAndColumn(startRow,startCol).setFill(Color.LIGHTBLUE);
+
+                    }
+                    startRow = row;
+                    startCol = col;
+                    map[row][col] = 'S';
+                    rectangle.setFill(Color.LIGHTGREEN);
+                }
+                else {
+                    if(!endCellAdded){
+                        endCellAdded = true;
+                    }
+                    else {
+                        map[endRow][endCol] = '.';
+                        getRectangleByRowAndColumn(endRow,endCol).setFill(Color.LIGHTBLUE);
+                    }
+                    endRow = row;
+                    endCol = col;
+                    map[row][col] = 'F';
+                    rectangle.setFill(Color.INDIANRED);
+
+                }
+            }
+        }
+
+    }
+
+    private char selectedCellValue() {
+        switch (selectedCellType) {
+            case "Start" -> {return 'S';}
+            case "Finish" -> {return 'F';}
+            case "Rock" -> {return '0';}
+        }
+        return '.';
+    }
+
+    public Rectangle getRectangleByRowAndColumn(int row, int column) {
+        for (Node node : this.getChildren()) {
+            if (GridPane.getRowIndex(node) != null && GridPane.getRowIndex(node) == row &&
+                    GridPane.getColumnIndex(node) != null && GridPane.getColumnIndex(node) == column)
+                if(node instanceof Rectangle) {
+                    return (Rectangle) node;
+                }
+        }
+        return null;
+    }
+
+    public Boolean getStartCellAdded() {
+        return startCellAdded;
+    }
+
+    public Boolean getEndCellAdded() {
+        return endCellAdded;
     }
 }
 

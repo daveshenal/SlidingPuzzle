@@ -10,11 +10,9 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.util.List;
+
 
 public class SlidingPuzzleApp extends Application {
-
-    private char[][] selectedMap;
 
     @Override
     public void start(Stage primaryStage) {
@@ -62,6 +60,7 @@ public class SlidingPuzzleApp extends Application {
         customRadioButton.setToggleGroup(categoryToggleGroup);
 
         // Map number selection
+        Label selectOrCreate = new Label("Select Map Number:");
         ScrollPane mapNumberScrollPane = new ScrollPane();
         VBox mapNumberList = new VBox(10);
         mapNumberList.setPrefWidth(200);
@@ -83,12 +82,24 @@ public class SlidingPuzzleApp extends Application {
         buttonBox.setAlignment(Pos.CENTER_LEFT);
 
         leftBox.getChildren().addAll(new Label("Select Map Category:"),benchmarkRadioButton, exampleRadioButton, customRadioButton,
-                new Label("Select Map Number:"), mapNumberScrollPane,loadMapButtonBox, buttonBox);
+                selectOrCreate, mapNumberScrollPane,loadMapButtonBox, buttonBox);
 
         // Add event listeners
         categoryToggleGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
             if (newToggle != null) {
-                updateMapNumberList(newToggle.getUserData().toString(), mapNumberList, mapNumberToggleGroup);
+                if(newToggle.getUserData().toString().equals("Custom Map")) {
+                    selectOrCreate.setText("Select Custom Map Properties:");
+                    customMapEditor(mapNumberList, puzzlePane, startButton);
+                    startButton.setVisible(false);
+                    loadMapButton.setVisible(false);
+                    puzzlePane.drawCustomMap(10,10);
+                }
+                else{
+                    selectOrCreate.setText("Select Map Number:");
+                    startButton.setVisible(true);
+                    loadMapButton.setVisible(true);
+                    updateMapNumberList(newToggle.getUserData().toString(), mapNumberList, mapNumberToggleGroup);
+                }
             }
         });
 
@@ -103,11 +114,11 @@ public class SlidingPuzzleApp extends Application {
                     try {
                         int selectedMapNumber = (int) mapNumberToggleGroup.getSelectedToggle().getUserData();
                         switch (category) {
-                            case "Benchmark Series" -> selectedMap = SlidingPuzzles.selectBenchmarkMap(selectedMapNumber);
-                            case "Example Puzzles" -> selectedMap = SlidingPuzzles.selectExampleMap(selectedMapNumber);
+                            case "Benchmark Series" -> puzzlePane.setMap(SlidingPuzzles.selectBenchmarkMap(selectedMapNumber));
+                            case "Example Puzzles" -> puzzlePane.setMap(SlidingPuzzles.selectExampleMap(selectedMapNumber));
                             default -> throw new IllegalStateException("Unexpected value: " + category);
                         }
-                        puzzlePane.drawMap(selectedMap);
+                        puzzlePane.drawMap();
                     } catch (IOException ex) {
                         ex.printStackTrace(); // Handle exception appropriately
                     }
@@ -122,9 +133,7 @@ public class SlidingPuzzleApp extends Application {
 
         });
         startButton.setOnAction(event -> {
-            IceMap iceMap = new IceMap(selectedMap);
-            List<IceMapNode> path = SlidingPuzzles.findPath(iceMap.getStartNode(), iceMap.getEndNode());
-            puzzlePane.printPathSteps(path);
+            puzzlePane.printPathSteps();
         });
         resetButton.setOnAction(event -> {
             // Reset button action
@@ -154,6 +163,66 @@ public class SlidingPuzzleApp extends Application {
             radioButton.setUserData(i);
             mapNumberList.getChildren().add(radioButton);
         }
+    }
+
+    private void customMapEditor(VBox mapNumberList, SlidingPuzzlePane puzzlePane, Button startButton) {
+        mapNumberList.getChildren().clear();
+        Label rowsLabel = new Label("Rows:");
+        Spinner<Integer> rowsSpinner = new Spinner<>(3, 20, 10);
+        rowsSpinner.setEditable(true);
+
+        Label colsLabel = new Label("Columns:");
+        Spinner<Integer> colsSpinner = new Spinner<>(3, 20, 10);
+        colsSpinner.setEditable(true);
+
+        Button createMapGridBtn = new Button("Create Map Grid");
+
+        createMapGridBtn.setOnAction(event -> {
+            puzzlePane.drawCustomMap(rowsSpinner.getValue(),colsSpinner.getValue());
+        });
+
+        // Cell type selection
+        ToggleGroup categoryToggleGroup = new ToggleGroup();
+        RadioButton startRadioButton = new RadioButton("  Start");
+        startRadioButton.setUserData("Start");
+        RadioButton finishRadioButton = new RadioButton("  Finish");
+        finishRadioButton.setUserData("Finish");
+        RadioButton rockRadioButton = new RadioButton("  Rock");
+        rockRadioButton.setUserData("Rock");
+
+        startRadioButton.setToggleGroup(categoryToggleGroup);
+        finishRadioButton.setToggleGroup(categoryToggleGroup);
+        rockRadioButton.setToggleGroup(categoryToggleGroup);
+
+        startRadioButton.setSelected(true);
+
+        categoryToggleGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
+            if (newToggle != null) {
+                String selectedType = newToggle.getUserData().toString();
+                puzzlePane.setSelectedCellType(selectedType);
+            }
+        });
+
+        Button finalizeMapBtn = new Button("Done");
+
+        finalizeMapBtn.setOnAction(event -> {
+            if(!puzzlePane.getStartCellAdded()){
+                displayErrorMessage("Please select the starting point.");
+            }
+            else if(!puzzlePane.getEndCellAdded()){
+                displayErrorMessage("Please select a map finishing point.");
+            }
+            else {
+                startButton.setVisible(true);
+            }
+        });
+
+        mapNumberList.getChildren().addAll(rowsLabel,rowsSpinner,colsLabel,colsSpinner,createMapGridBtn,
+                new Label("Select Cell Type:"),startRadioButton,finishRadioButton,rockRadioButton,
+                finalizeMapBtn);
+
+
+
     }
 
     public static void main(String[] args) {
