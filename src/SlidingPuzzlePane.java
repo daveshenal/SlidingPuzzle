@@ -3,9 +3,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-import javafx.util.Duration;
 
 import java.util.List;
 
@@ -32,7 +29,6 @@ public class SlidingPuzzlePane extends GridPane {
                 rectangle.setStroke(Color.GRAY);
                 rectangle.setStrokeWidth(1);
 
-                // Set color based on cell value
                 if (cellValue == '0') {
                     rectangle.setFill(Color.GRAY);
                 } else if (cellValue == 'S') {
@@ -56,29 +52,52 @@ public class SlidingPuzzlePane extends GridPane {
     }
 
     public void printPathSteps(List<IceMapNode> path) {
-        for (int i = 1; i < path.size() - 1; i++) {
-            IceMapNode start = path.get(i);
-            IceMapNode end = path.get(i + 1);
+        Thread pathPrintingThread = new Thread(() -> {
+            for (int i = 0; i < path.size() - 1; i++) {
+                IceMapNode start = path.get(i);
+                IceMapNode end = path.get(i + 1);
 
-            int rowIncrement = Integer.signum(end.getRow() - start.getRow());
-            int colIncrement = Integer.signum(end.getColumn() - start.getColumn());
+                int rowIncrement = Integer.signum(end.getRow() - start.getRow());
+                int colIncrement = Integer.signum(end.getColumn() - start.getColumn());
 
-            int row = start.getRow();
-            int col = start.getColumn();
-            while (row != end.getRow() || col != end.getColumn()) {
-                updateCellColor(row, col, Color.YELLOW);
-                if (row != end.getRow()) {
-                    row += rowIncrement;
+                int row,col;
+                if(i == 0){
+                    row = start.getRow() + rowIncrement;
+                    col = start.getColumn() + colIncrement;
                 }
-                if (col != end.getColumn()) {
-                    col += colIncrement;
+                else{
+                    row = start.getRow();
+                    col = start.getColumn();
                 }
+                int prevRow = row;
+                int prevCol = col;
+                while (row != end.getRow() || col != end.getColumn()) {
+
+                    updateCellColor(prevRow, prevCol, Color.YELLOW);
+                    updateCellColor(row, col, Color.INDIANRED);
+                    if (row != end.getRow()) {
+                        prevRow = row;
+                        row += rowIncrement;
+                    }
+                    if (col != end.getColumn()) {
+                        prevCol = col;
+                        col += colIncrement;
+                    }
+                    try {
+                        Thread.sleep(100); // delay time in milliseconds
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                updateCellColor(prevRow, prevCol, Color.YELLOW);
             }
-        }
 
-        // Update the final position
-        IceMapNode lastNode = path.get(path.size() - 1);
-        updateCellColor(lastNode.getRow(), lastNode.getColumn(), Color.LIGHTGREEN);
+            // Update the final position
+            IceMapNode lastNode = path.get(path.size() - 1);
+            updateCellColor(lastNode.getRow(), lastNode.getColumn(), Color.LIGHTGREEN);
+        });
+
+        pathPrintingThread.start();
     }
 
     private void updateCellColor(int row, int col, Color color) {
