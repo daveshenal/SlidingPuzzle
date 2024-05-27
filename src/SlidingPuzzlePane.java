@@ -63,6 +63,13 @@ public class SlidingPuzzlePane extends GridPane {
     public void printPathSteps() {
         IceMap iceMap = new IceMap(map);
         List<IceMapNode> path = SlidingPuzzles.findPath(iceMap.getStartNode(), iceMap.getEndNode());
+
+        if(path.size() == 1){
+            SlidingPuzzleApp.displayErrorMessage("No Path found!");
+            System.out.println("No Path found!");
+            return;
+        }
+
         Thread pathPrintingThread = new Thread(() -> {
             for (int i = 0; i < path.size() - 1; i++) {
                 IceMapNode start = path.get(i);

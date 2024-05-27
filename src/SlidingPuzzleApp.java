@@ -77,6 +77,7 @@ public class SlidingPuzzleApp extends Application {
         Button loadMapButton = new Button("Get Map");
         Button startButton = new Button("Start");
         Button resetButton = new Button("Reset");
+        resetButton.setVisible(false);
         HBox loadMapButtonBox = new HBox(loadMapButton);
         HBox buttonBox = new HBox(10, startButton, resetButton);
         buttonBox.setAlignment(Pos.CENTER_LEFT);
@@ -134,9 +135,10 @@ public class SlidingPuzzleApp extends Application {
         });
         startButton.setOnAction(event -> {
             puzzlePane.printPathSteps();
+            resetButton.setVisible(true);
         });
         resetButton.setOnAction(event -> {
-            // Reset button action
+            puzzlePane.drawMap();
         });
 
         // Full layout: BorderPane
@@ -213,6 +215,7 @@ public class SlidingPuzzleApp extends Application {
                 displayErrorMessage("Please select a map finishing point.");
             }
             else {
+                puzzlePane.drawMap();
                 startButton.setVisible(true);
             }
         });
@@ -229,7 +232,7 @@ public class SlidingPuzzleApp extends Application {
         launch(args);
     }
 
-    private void displayErrorMessage(String message) {
+    public static void displayErrorMessage(String message) {
         // Display an error message dialog
         Stage errorWindow = new Stage();
         errorWindow.initModality(Modality.APPLICATION_MODAL);
