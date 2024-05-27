@@ -1,10 +1,17 @@
+import javafx.geometry.HPos;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.List;
 
 
@@ -34,29 +41,29 @@ public class SlidingPuzzlePane extends GridPane {
         for (int i = 0; i < map.length; i++) {
             for (int j = 0; j < map[i].length; j++) {
                 char cellValue = map[i][j];
-                Rectangle rectangle = new Rectangle(30, 30);
-                rectangle.setStroke(Color.GRAY);
-                rectangle.setStrokeWidth(1);
+                ImageView imageView = new ImageView();
+                imageView.setFitWidth(30);
+                imageView.setFitHeight(30);
 
-                if (cellValue == '0') {
-                    rectangle.setFill(Color.GRAY);
-                } else if (cellValue == 'S') {
-                    rectangle.setFill(Color.LIGHTGREEN);
-                } else if (cellValue == 'F') {
-                    rectangle.setFill(Color.INDIANRED);
-                } else {
-                    rectangle.setFill(Color.LIGHTBLUE);
+                switch (cellValue) {
+                    case '0' -> imageView.setImage(loadImage("images/cave-painting.png"));
+                    case 'S' -> imageView.setImage(loadImage("images/igloo.png"));
+                    case 'F' -> imageView.setImage(loadImage("images/castle-tower2.png"));
+                    default -> imageView.setImage(loadImage("images/ice2.png"));
                 }
 
-                this.add(rectangle, j, i);
-
-                if (cellValue == 'S' || cellValue == 'F') {
-                    Text cell = new Text(String.valueOf(cellValue));
-                    this.add(cell, j, i);
-                    GridPane.setHalignment(cell, javafx.geometry.HPos.CENTER);
-                    GridPane.setValignment(cell, javafx.geometry.VPos.CENTER);
-                }
+                this.add(imageView, j, i);
             }
+        }
+    }
+
+    private Image loadImage(String path) {
+        try {
+            FileInputStream inputStream = new FileInputStream(new File(path));
+            return new Image(inputStream);
+        } catch (FileNotFoundException e) {
+            System.err.println("Failed to load image at path: " + path);
+            return null;
         }
     }
 
@@ -64,7 +71,7 @@ public class SlidingPuzzlePane extends GridPane {
         IceMap iceMap = new IceMap(map);
         List<IceMapNode> path = SlidingPuzzles.findPath(iceMap.getStartNode(), iceMap.getEndNode());
 
-        if(path.size() == 1){
+        if (path.size() == 1) {
             SlidingPuzzleApp.displayErrorMessage("No Path found!");
             System.out.println("No Path found!");
             return;
@@ -78,21 +85,19 @@ public class SlidingPuzzlePane extends GridPane {
                 int rowIncrement = Integer.signum(end.getRow() - start.getRow());
                 int colIncrement = Integer.signum(end.getColumn() - start.getColumn());
 
-                int row,col;
-                if(i == 0){
+                int row, col;
+                if (i == 0) {
                     row = start.getRow() + rowIncrement;
                     col = start.getColumn() + colIncrement;
-                }
-                else{
+                } else {
                     row = start.getRow();
                     col = start.getColumn();
                 }
                 int prevRow = row;
                 int prevCol = col;
                 while (row != end.getRow() || col != end.getColumn()) {
-
-                    updateCellColor(prevRow, prevCol, Color.YELLOW);
-                    updateCellColor(row, col, Color.INDIANRED);
+                    updateCellImage(prevRow, prevCol, "images/ice5.png");
+                    updateCellImage(row, col, "images/cold.png");
                     if (row != end.getRow()) {
                         prevRow = row;
                         row += rowIncrement;
@@ -107,22 +112,22 @@ public class SlidingPuzzlePane extends GridPane {
                         e.printStackTrace();
                     }
                 }
-                updateCellColor(prevRow, prevCol, Color.YELLOW);
+                updateCellImage(prevRow, prevCol, "images/ice5.png");
             }
 
             // Update the final position
             IceMapNode lastNode = path.get(path.size() - 1);
-            updateCellColor(lastNode.getRow(), lastNode.getColumn(), Color.LIGHTGREEN);
+            updateCellImage(lastNode.getRow(), lastNode.getColumn(), "images/castle-tower.png");
         });
 
         pathPrintingThread.start();
     }
 
-    private void updateCellColor(int row, int col, Color color) {
+    private void updateCellImage(int row, int col, String imagePath) {
         for (javafx.scene.Node node : this.getChildren()) {
             if (GridPane.getRowIndex(node) == row && GridPane.getColumnIndex(node) == col) {
-                if (node instanceof Rectangle) {
-                    ((Rectangle) node).setFill(color);
+                if (node instanceof ImageView) {
+                    ((ImageView) node).setImage(loadImage(imagePath));
                 }
             }
         }
