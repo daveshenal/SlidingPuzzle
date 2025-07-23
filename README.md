@@ -1,73 +1,50 @@
-Using path finding to solve a type of puzzle that occurs 
-in many video games. The basic version that we will be dealing with is this:
+# 🧊 Ice Sliding Puzzle Solver
 
-.....0...S
+This project uses **A\* pathfinding algorithm** to solve a classic ice-sliding puzzle that appears in many video games.
 
-....0..... 
+## ❓ Problem Description
 
-0.....0..0 
+The game is played on a grid where:
 
-...0....0. 
+- `S` is the **Start** position
+- `F` is the **Finish** position
+- `0` represents **rocks**
+- `.` represents **frictionless ice**
+- The player slides in a straight line until they hit a rock or the wall
 
-.F......0.
+Unlike standard grid movement, the player can't stop mid-slide. They can only change direction after coming to a stop.
 
-.0........ 
+### 🔍 Example Puzzle
 
-.......0..
+<pre>
+. . . . . 0 . . . S  
+. . . . 0 . . . . .  
+0 . . . . . 0 . . 0  
+. . . 0 . . . . 0 .  
+. F . . . . . . 0 .  
+. 0 . . . . . . . .  
+. . . . . . . 0 . .  
+. 0 . 0 . . 0 . . 0  
+0 . . . . . . . . .  
+. 0 0 . . . . . 0 .  
+</pre>
 
-.0.0..0..0 
 
-0......... 
+The goal is to find the shortest (or any valid) path from `S` to `F`, taking into account the special sliding mechanics.
 
-.00.....0. 
+## 💻 User Interface
 
-The player starts at the location labelled “S” and wants to reach the finish, labelled “F”. Each 
-turn they choose one of the four cardinal directions to move. However, except for S and F the 
-floor is covered in frictionless ice, so they will keep sliding in the chosen direction until they 
-hit the wall surrounding the area, or one of the rocks (labelled “0”). For example, starting in 
-the map given above:
+> 📷 **Screenshot Preview**
 
-.....0...@ 
+![Puzzle Screenshot](./assets/pz-screenshot.png)
 
-....0..... 
+![UI Screenshot](./assets/ui-screenshot.png)
 
-0.....0..0 
+## 🚀 Run the Project
 
-...0....0. 
+Clone the repo and run the solver:
 
-.F......0. 
-
-.0........
-
-.......0.. 
-
-.0.0..0..0 
-
-0......... 
-
-.00.....0. 
-
-the player (“@”) moving left would end up here:
-
-.....0@..S 
-
-....0..... 
-
-0.....0..0 
-
-...0....0. 
-
-.F......0.
-
-.0........ 
-
-.......0.. 
-
-.0.0..0..0 
-
-0......... 
-
-.00.....0. 
-
-So we are dealing with the problem of finding a path from S to F, but the reachability relation 
-between points is not the usual one.
+```bash
+git clone https://github.com/your-username/ice-puzzle-solver.git
+cd ice-puzzle-solver
+python main.py
