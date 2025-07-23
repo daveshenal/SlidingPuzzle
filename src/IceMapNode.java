@@ -44,10 +44,6 @@ public class IceMapNode implements Comparable<IceMapNode> {
         this.leftNeighbor = leftNeighbor;
     }
 
-    public void setDistanceFromStart(int distanceFromStart) {
-        this.distanceFromStart = distanceFromStart;
-    }
-
     public void setPathAttributes(IceMapNode pathParent, IceMapNode finishNode){
         this.pathParent = pathParent;
 

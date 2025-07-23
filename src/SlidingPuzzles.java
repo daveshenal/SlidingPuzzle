@@ -173,16 +173,14 @@ public class SlidingPuzzles {
         int count = 0;
 
         while (!queue.isEmpty()) {
-            IceMapNode currentNode = queue.poll();
+            count++;
+            IceMapNode currentNode = queue.peek();
 
-            if(finishNode.getDistanceFromStart() < currentNode.getDistanceFromStart()) {
-                System.out.println("skipped");
-                continue;
-            }
+            if(currentNode == finishNode) break;
 //            currentNode.printNodeInfo();
 //            System.out.println();
             exploreAndEnqueuePaths(currentNode, finishNode, visited, queue);
-            count++;
+            queue.remove();
         }
         System.out.println("Iteration count : " + count);
         return reconstructPath(finishNode);
@@ -219,7 +217,6 @@ public class SlidingPuzzles {
             }
         }
     }
-
 
     // write map data to a file (for test purpose)
     public static void writeMapToFile() throws IOException {
